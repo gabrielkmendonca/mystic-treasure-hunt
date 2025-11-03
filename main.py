@@ -86,7 +86,7 @@ def clue_content(current_position, treasure_position):
     if Y < y:
         tip.append("to the LEFT")
     elif Y > y:
-        tip.append("to teh RIGHT")
+        tip.append("to the RIGHT")
 
     if len(tip) == 2:
         return f"The treasure is {tip[0]} and {tip[1]}."
