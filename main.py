@@ -1,143 +1,146 @@
 import random 
 
-tesouro = "🏆"
-armadilha = "💣"
-pista = "🔎"
-vazio = " _"
-escondido = " X"
+treasure = "🏆"
+trap = "💣"
+clue = "🔎"
+empty = " _"
+hidden = " X"
 
-def configurar_tabuleiro (mensagem): #função para configurar a dimensão do tabuleiro
+def field_config (message): 
     try:
-        valor = int(input(mensagem))
-        return valor
+        value = int(input(message))
+        return value
     except ValueError:
-        print("Entrada inválida. Insira um número inteiro.")
+        print("Invalid input. Please enter an integer.")
     
-def criar_tabuleiro(tamanho): #função para criar o tabuleiro
-    tabuleiro = []
-    for i in range (tamanho):
-        linha = []
-        for j in range (tamanho):
-            linha.append(vazio)
-        tabuleiro.append(linha)
-    tabuleiro[0][0] = vazio
-    return tabuleiro
+def create_field(size): 
+    field = []
+    for i in range (size):
+        row = []
+        for j in range (size):
+            row.append(empty)
+        field.append(row)
+    field[0][0] = empty
+    return field
 
-def distribuir_elementos(tabuleiro, tamanho, quantidade_armadilhas, quantidade_pistas): #função para distribuir os itens pelo tabuleiro
-    todas_posicoes = []
-    for i in range (tamanho):
-        for j in range (tamanho):
+def distribute_elements(field, size, traps_quantity, clues_quantity): 
+    all_positions = []
+    for i in range (size):
+        for j in range (size):
             if not (i == 0 and j == 0):
-                todas_posicoes.append((i,j))
-    random.shuffle(todas_posicoes)
+                all_positions.append((i,j))
+    random.shuffle(all_positions)
 
-    #posição do tesouro
-    x, y = todas_posicoes.pop()
-    tabuleiro[x][y] = tesouro
-    pos_tesouro = (x, y)
+    
+    x, y = all_positions.pop()
+    field[x][y] = treasure
+    treasure_position = (x, y)
 
-    #posição das armadilhas
-    for i in range (quantidade_armadilhas):
-        x, y = todas_posicoes.pop()
-        tabuleiro[x][y] = armadilha
+    
+    for i in range (traps_quantity):
+        x, y = all_positions.pop()
+        field[x][y] = trap
 
-    #posição das pistas
-    for i in range (quantidade_pistas):
-        x, y = todas_posicoes.pop()
-        tabuleiro[x][y] = pista
+    
+    for i in range (clues_quantity):
+        x, y = all_positions.pop()
+        field[x][y] = clue
 
-    return pos_tesouro
+    return treasure_position
 
-def exibir_tabuleiro(tamanho_tabuleiro, tabuleiro, pos_reveladas): #função pra exibir o tabuleiro ao longo do jogo
-    print("\nTabuleiro Atual:")
-    print("    " + " ".join(f"{i:2d}" for i in range(1, tamanho_tabuleiro + 1)))
-    print("   " + "———" * tamanho_tabuleiro)
-    for i in range(tamanho_tabuleiro):
-        linha = []
-        for j in range (tamanho_tabuleiro):
-            if (i, j) in pos_reveladas:
-                if tabuleiro[i][j] == vazio:
-                    linha.append(f"{tabuleiro[i][j]:2s}")
+def show_field(field_size, field, revealed_positions): 
+    print("\nCurrent field:")
+    print("    " + " ".join(f"{i:2d}" for i in range(1, field_size + 1)))
+    print("   " + "———" * field_size)
+    for i in range(field_size):
+        row = []
+        for j in range (field_size):
+            if (i, j) in revealed_positions:
+                if field[i][j] == empty:
+                    row.append(f"{field[i][j]:2s}")
                 else:
-                    linha.append(f"{tabuleiro[i][j]}")
+                    row.append(f"{field[i][j]}")
             else:
-                linha.append(f"{escondido:2s}")
-        print(f"{i + 1} | " + " ".join(linha))
+                row.append(f"{hidden:2s}")
+        print(f"{i + 1} | " + " ".join(row))
 
-def obter_jogada(tamanho_tabuleiro, pos_reveladas): #função para solicitar uma jogada
+def get_move(field_size, revealed_positions): 
     while True:
-        x = int(input(f"\nInforme a linha (1 a {tamanho_tabuleiro}): ")) - 1
-        y = int(input(f"Informe a coluna (1 a {tamanho_tabuleiro}): ")) - 1
-        if (x, y) in pos_reveladas:
-            print("Essa posição já foi revelada... Escolha outra.")
+        x = int(input(f"\nSelect a row (1 a {field_size}): ")) - 1
+        y = int(input(f"Select a column (1 a {field_size}): ")) - 1
+        if (x, y) in revealed_positions:
+            print("This position has already been revealed... Choose another one.")
             continue
         return x, y
     
-def conteudo_pistas(posicao, pos_tesouro): #função para informar a dica contida na pista
-    x, y = posicao
-    X, Y = pos_tesouro
-    dica = []
+def clue_content(current_position, treasure_position): 
+    x, y = current_position
+    X, Y = treasure_position
+    tip = []
 
     if X < x:
-        dica.append("para Cima")
+        tip.append("UP")
     elif X > x:
-        dica.append("para Baixo")
+        tip.append("DOWN")
 
     if Y < y:
-        dica.append("para a Esquerda")
+        tip.append("to the LEFT")
     elif Y > y:
-        dica.append("para a Direita")
+        tip.append("to teh RIGHT")
 
-    if len(dica) == 2:
-        return f"O tesouro está mais para {dica[0]} e {dica[1]}."
-    return f"O tesouro está mais {dica[0]}."
+    if len(tip) == 2:
+        return f"The treasure is {tip[0]} and {tip[1]}."
+    return f"The treasure is {tip[0]}."
 
-def processar_jogada(tabuleiro, posicao): #processar e armazenar as jogadas já realizadas
-    x, y = posicao
-    conteudo_casa = tabuleiro[x][y]
-    if conteudo_casa == tesouro:
-        return tesouro
-    elif conteudo_casa == armadilha:
-        return armadilha
-    elif conteudo_casa == pista:
-        return pista
+def process_move(field, current_position): 
+    x, y = current_position
+    square_content = field[x][y]
+    if square_content == treasure:
+        return treasure
+    elif square_content == trap:
+        return trap
+    elif square_content == clue:
+        return clue
     else:
-        return vazio
+        return empty
         
 
-print("======= Caça ao Tesouro Místico =======")
+print("======= Mystic Treasure Hunt =======")
 
-tamanho_tabuleiro = configurar_tabuleiro("Insira o tamanho do tabuleiro (NxN): ")
-tabuleiro = criar_tabuleiro(tamanho_tabuleiro)
-quantidade_armadilhas = random.randint(3, 6)
-quantidade_pistas = random.randint(5, 8)
-pos_tesouro = distribuir_elementos(tabuleiro, tamanho_tabuleiro, quantidade_armadilhas, quantidade_pistas)
-pos_reveladas = set()
-vidas = 3
+field_size = field_config("Select the field size (NxN): ")
+field = create_field(field_size)
+traps_quantity = random.randint(3, 6)
+clues_quantity = random.randint(5, 8)
+treasure_position = distribute_elements(field, field_size, traps_quantity, clues_quantity)
+revealed_positions = set()
+lifes = 3
 
-exibir_tabuleiro(tamanho_tabuleiro, tabuleiro, pos_reveladas)
+show_field(field_size, field, revealed_positions)
 
 while True:
-    print(f"\nVocê possui {vidas} vidas restantes.")
-    x, y = obter_jogada(tamanho_tabuleiro, pos_reveladas)
-    pos_reveladas.add((x, y))
-    resultado = processar_jogada(tabuleiro,(x, y))
+    print(f"\nYou have {lifes} remaining lifes.")
+    print(f"There is {traps_quantity} traps and {clues_quantity} clues remaining.")
+    x, y = get_move(field_size, revealed_positions)
+    revealed_positions.add((x, y))
+    result = process_move(field,(x, y))
 
-    if resultado == tesouro:
-        exibir_tabuleiro(tamanho_tabuleiro, tabuleiro, pos_reveladas)
-        print("\nVocê encontrou o TESOURO MÍSTICO! PARABÉNS!")
+    if result == treasure:
+        show_field(field_size, field, revealed_positions)
+        print("\nYou've found the MYSTIC TREASURE! CONGRATULATIONS!")
         break
-    elif resultado == armadilha:
-        exibir_tabuleiro(tamanho_tabuleiro, tabuleiro, pos_reveladas)
-        print("\nVocê caiu em uma ARMADILHA!")
-        vidas -= 1
-        if vidas == 0:
-            print("Suas vidas acabaram!")
+    elif result == trap:
+        show_field(field_size, field, revealed_positions)
+        print("\nYou've found a TRAP! Just lost one life.")
+        traps_quantity -= 1
+        lifes -= 1
+        if lifes == 0:
+            print("No more lifes. GAME OVER!")
             break
-    elif resultado == pista:
-        dica = conteudo_pistas((x, y), pos_tesouro)
-        print(f"\nVocê descobriu uma PISTA: {dica}")
-        exibir_tabuleiro(tamanho_tabuleiro, tabuleiro, pos_reveladas)
-    elif resultado == vazio:
-        print("\nPosição vazia... nada aqui")
-        exibir_tabuleiro(tamanho_tabuleiro, tabuleiro, pos_reveladas)
+    elif result == clue:
+        tip = clue_content((x, y), treasure_position)
+        print(f"\nYou've found a CLUE: {tip}")
+        show_field(field_size, field, revealed_positions)
+        clues_quantity -= 1
+    elif result == empty:
+        print("\nEmpty square... there is nothing here")
+        show_field(field_size, field, revealed_positions)
