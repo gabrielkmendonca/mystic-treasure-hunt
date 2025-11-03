@@ -50,8 +50,8 @@ def distribute_elements(field, size, traps_quantity, clues_quantity):
 
 def show_field(field_size, field, revealed_positions): 
     print("\nCurrent field:")
-    print("    " + " ".join(f"{i:2d}" for i in range(1, field_size + 1)))
-    print("   " + "———" * field_size)
+    print("     " + " ".join(f"{i:2d}" for i in range(1, field_size + 1)))
+    print("    " + "———" * field_size)
     for i in range(field_size):
         row = []
         for j in range (field_size):
@@ -62,7 +62,7 @@ def show_field(field_size, field, revealed_positions):
                     row.append(f"{field[i][j]}")
             else:
                 row.append(f"{hidden:2s}")
-        print(f"{i + 1} | " + " ".join(row))
+        print(f"{i + 1:2d} | " + " ".join(row))
 
 def get_move(field_size, revealed_positions): 
     while True:
@@ -70,6 +70,9 @@ def get_move(field_size, revealed_positions):
         y = int(input(f"Select a column (1 a {field_size}): ")) - 1
         if (x, y) in revealed_positions:
             print("This position has already been revealed... Choose another one.")
+            continue
+        if x not in range (0, field_size) or y not in range(0, field_size):
+            print("\nInvalid position... Make sure to select an existing square.")
             continue
         return x, y
     
@@ -105,12 +108,16 @@ def process_move(field, current_position):
         return empty
         
 
-print("======= Mystic Treasure Hunt =======")
+print("===== Mystic Treasure Hunt =====")
 
 field_size = field_config("Select the field size (NxN): ")
 field = create_field(field_size)
-traps_quantity = random.randint(3, 6)
-clues_quantity = random.randint(5, 8)
+traps_min = int(field_size / 5 * 3)
+traps_max = int(field_size / 5 * 6)
+clues_min = int(field_size / 5 * 5)
+clues_max = int(field_size / 5 * 8)
+traps_quantity = random.randint(traps_min, traps_max)
+clues_quantity = random.randint(clues_min, clues_max)
 treasure_position = distribute_elements(field, field_size, traps_quantity, clues_quantity)
 revealed_positions = set()
 lifes = 3
@@ -118,8 +125,8 @@ lifes = 3
 show_field(field_size, field, revealed_positions)
 
 while True:
-    print(f"\nYou have {lifes} remaining lifes.")
-    print(f"There is {traps_quantity} traps and {clues_quantity} clues remaining.")
+    print(f"\nYou have {lifes} lifes remaining.")
+    print(f"There's {traps_quantity} traps and {clues_quantity} clues left.")
     x, y = get_move(field_size, revealed_positions)
     revealed_positions.add((x, y))
     result = process_move(field,(x, y))
@@ -138,9 +145,9 @@ while True:
             break
     elif result == clue:
         tip = clue_content((x, y), treasure_position)
-        print(f"\nYou've found a CLUE: {tip}")
         show_field(field_size, field, revealed_positions)
+        print(f"\nYou've found a CLUE: {tip}")
         clues_quantity -= 1
     elif result == empty:
-        print("\nEmpty square... there is nothing here")
         show_field(field_size, field, revealed_positions)
+        print("\nEmpty square... There is nothing here")
